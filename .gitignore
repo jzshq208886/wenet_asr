@@ -1,0 +1,5 @@
+__pycache__
+wenet_asr_client/audio/
+wenet_asr_server/models/
+log/
+test.py

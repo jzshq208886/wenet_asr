@@ -1,0 +1,49 @@
+syntax = "proto3";
+package wenetasr;
+
+service WenetASR {
+    rpc Test (TextMessage) returns (TextMessage);
+    rpc Recognize (RecognizeRequest) returns (RecognizeResponse);
+    rpc StreamingRecognize (stream StreamingRecognizeRequest) returns (stream StreamingRecognizeResponse);
+    rpc Punct (TextMessage) returns (TextMessage);
+}
+
+message Empty {}
+
+message TextMessage {
+    string text = 1;
+}
+
+// message Frame {
+//     bytes audio_content = 1;
+// }
+
+message RecognitionConfig {
+    int32 sample_rate_hertz = 8192;
+}
+
+message RecognizeRequest {
+    RecognitionConfig config = 1;
+    bytes data = 2;
+}
+
+// message RecognizeRequest {
+//     int32 sample_rate = 1;
+//     bytes data = 2;
+// }
+
+message RecognizeResponse {
+    string transcript = 1;
+}
+
+message StreamingRecognizeRequest {
+    oneof streaming_request {
+        // RecognitionConfig config = 1;
+        bytes data = 2;
+    }
+}
+
+
+message StreamingRecognizeResponse {
+    string transcript = 1;
+}
