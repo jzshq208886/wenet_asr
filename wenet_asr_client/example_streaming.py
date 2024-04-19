@@ -14,7 +14,7 @@ SERVER_PORT = 50051       # 服务器端口号
 
 # 每次读取的音频帧大小
 # 用于控制识别结果实时更新速率，CHUNK越小实时更新率越高，但应保证实时更新时间间隔大于一次性识别请求的时长
-CHUNK = 1024 * 6
+CHUNK = 1024 * 16
 
 AUDIO_FILE = 'audio/082311171430575628101.wav'
 
@@ -50,11 +50,13 @@ def streaming_test():
     # 初始化一个Recognizer对象，需指定待识别音频的采样率和位深度。仅支持单声道，多声道音频需提前转换为单声道。
     recognizer = wenet_asr_client.Recognizer(sample_rate=rate,
                                              bit_depth=8 * sampwidth,
-                                             update_duration=10)
+                                             update_duration=8)
 
     # 连接服务器
     print('connecting...')
     recognizer.connect(f'{SERVER_IP}:{SERVER_PORT}')
+
+    # recognizer.reload_model(context_score=6)
 
     # 开启流式识别模式
     recognizer.start_streaming()
@@ -68,16 +70,17 @@ def streaming_test():
 
         recognizer.input(data)  # 输入一个CHUNK的数据，并自动执行伪流式识别逻辑
         result = recognizer.result
-        # transcript = result['text']  # 获取当前识别结果
         fixed, puncted, new = result['fixed'], result['puncted'], result['new']
         print(f'[{datetime.now()-ini_time}] [{fixed}]{puncted}')  # 打印时间和结果
+        # print(f'[{datetime.now()-ini_time}] [{fixed}]{new}')  # 打印时间和结果
 
         # 补全一个CHUNK音频的实际时长
         run_delay = time.time() - chunkStart
         print('run_delay:', run_delay)
         if run_delay > duration:
             print('Warning: Single recognition request duration is longer than CHUNK duration. Try to set the CHUNK larger.')
-        time.sleep(max(duration - run_delay, 0))
+        else:
+            time.sleep(duration - run_delay)
 
     # 断开链接
     recognizer.disconnect()

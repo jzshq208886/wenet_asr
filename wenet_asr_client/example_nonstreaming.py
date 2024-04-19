@@ -10,10 +10,11 @@ def nonstreaming_test():
     # 将待识别语音读取为bytes类型
     with wave.open(AUDIO_FILE, 'rb') as f:
         rate = f.getframerate()
+        sampwidth = f.getsampwidth()
         data = f.readframes(f.getnframes())
 
     # 初始化一个Recognizer对象
-    recognizer = Recognizer(sample_rate=rate)
+    recognizer = Recognizer(sample_rate=rate, sampwidth=sampwidth)
 
     # 连接服务器
     print('connecting...')

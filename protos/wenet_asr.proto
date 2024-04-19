@@ -3,6 +3,8 @@ package wenetasr;
 
 service WenetASR {
     rpc Test (TextMessage) returns (TextMessage);
+    rpc GetServerID (Empty) returns (TextMessage);
+    rpc ReloadModel (ReloadModelRequest) returns (Empty);
     rpc Recognize (RecognizeRequest) returns (RecognizeResponse);
     rpc StreamingRecognize (stream StreamingRecognizeRequest) returns (stream StreamingRecognizeResponse);
     rpc Punct (TextMessage) returns (TextMessage);
@@ -14,12 +16,17 @@ message TextMessage {
     string text = 1;
 }
 
-// message Frame {
-//     bytes audio_content = 1;
-// }
+message ReloadModelRequest {
+    bool asr = 1;
+    string model = 2;
+    string hotwords = 3;
+    int32 context_score = 4;
+    bool punctuation = 5;
+    string punctuation_model = 6;
+}
 
 message RecognitionConfig {
-    int32 sample_rate_hertz = 8192;
+    int32 sample_rate_hertz = 1;
 }
 
 message RecognizeRequest {
@@ -42,7 +49,6 @@ message StreamingRecognizeRequest {
         bytes data = 2;
     }
 }
-
 
 message StreamingRecognizeResponse {
     string transcript = 1;

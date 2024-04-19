@@ -19,6 +19,16 @@ class WenetASRStub(object):
                 request_serializer=wenet__asr__pb2.TextMessage.SerializeToString,
                 response_deserializer=wenet__asr__pb2.TextMessage.FromString,
                 )
+        self.GetServerID = channel.unary_unary(
+                '/wenetasr.WenetASR/GetServerID',
+                request_serializer=wenet__asr__pb2.Empty.SerializeToString,
+                response_deserializer=wenet__asr__pb2.TextMessage.FromString,
+                )
+        self.ReloadModel = channel.unary_unary(
+                '/wenetasr.WenetASR/ReloadModel',
+                request_serializer=wenet__asr__pb2.ReloadModelRequest.SerializeToString,
+                response_deserializer=wenet__asr__pb2.Empty.FromString,
+                )
         self.Recognize = channel.unary_unary(
                 '/wenetasr.WenetASR/Recognize',
                 request_serializer=wenet__asr__pb2.RecognizeRequest.SerializeToString,
@@ -40,6 +50,18 @@ class WenetASRServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Test(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetServerID(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ReloadModel(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -70,6 +92,16 @@ def add_WenetASRServicer_to_server(servicer, server):
                     servicer.Test,
                     request_deserializer=wenet__asr__pb2.TextMessage.FromString,
                     response_serializer=wenet__asr__pb2.TextMessage.SerializeToString,
+            ),
+            'GetServerID': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetServerID,
+                    request_deserializer=wenet__asr__pb2.Empty.FromString,
+                    response_serializer=wenet__asr__pb2.TextMessage.SerializeToString,
+            ),
+            'ReloadModel': grpc.unary_unary_rpc_method_handler(
+                    servicer.ReloadModel,
+                    request_deserializer=wenet__asr__pb2.ReloadModelRequest.FromString,
+                    response_serializer=wenet__asr__pb2.Empty.SerializeToString,
             ),
             'Recognize': grpc.unary_unary_rpc_method_handler(
                     servicer.Recognize,
@@ -110,6 +142,40 @@ class WenetASR(object):
         return grpc.experimental.unary_unary(request, target, '/wenetasr.WenetASR/Test',
             wenet__asr__pb2.TextMessage.SerializeToString,
             wenet__asr__pb2.TextMessage.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetServerID(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/wenetasr.WenetASR/GetServerID',
+            wenet__asr__pb2.Empty.SerializeToString,
+            wenet__asr__pb2.TextMessage.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ReloadModel(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/wenetasr.WenetASR/ReloadModel',
+            wenet__asr__pb2.ReloadModelRequest.SerializeToString,
+            wenet__asr__pb2.Empty.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

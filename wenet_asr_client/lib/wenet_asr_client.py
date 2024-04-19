@@ -8,7 +8,7 @@ class Recognizer:
     def __init__(self, sample_rate: int,
                  bit_depth: int = 16,
                  update_duration: int = 10, 
-                 puncting_len: int = 60) -> None:
+                 puncting_len: int = 40) -> None:
         '''
         初始化音频相关参数。仅支持单声道，故不设channels参数。
 
@@ -20,11 +20,11 @@ class Recognizer:
 
         '''
 
-        self.config = wenet_asr_pb2.RecognitionConfig(
-            sample_rate_hertz=sample_rate,
-        )
-        self.rate = sample_rate
-        self.sampwidth = bit_depth / 8
+        # self.config = wenet_asr_pb2.RecognitionConfig(
+        #     sample_rate_hertz=sample_rate,
+        # )
+        self.sample_rate = sample_rate
+        self.sampwidth = bit_depth / 8 if bit_depth else None
         self.update_duration = update_duration
 
         self.connected = False
@@ -44,18 +44,24 @@ class Recognizer:
         self.puncfixed = ''
         self.puncting_len = puncting_len
 
-    
+    @property
+    def config(self):
+        return wenet_asr_pb2.RecognitionConfig(
+            sample_rate_hertz=self.sample_rate,
+        )
+
     @property
     def result(self):
         if self.punctuation:
             return {
                 'fixed': self.puncfixed,
-                'puncted': self.puncfixed + self.puncted,
+                'puncted': self.puncted,
                 'new': self.new,
                 'text': self.puncfixed + self.puncted + self.new,
             }
         return {
             'fixed': self.fixed,
+            'puncted': self.puncfixed + self.puncted,
             'new': self.new,
             'text': self.fixed + self.new
         }
@@ -66,6 +72,7 @@ class Recognizer:
             self.channel = grpc.insecure_channel(server_port)
             self.stub = wenet_asr_pb2_grpc.WenetASRStub(self.channel)
             self.connected = True
+            print(f'Server ID: {self.stub.GetServerID(wenet_asr_pb2.Empty()).text}')
         except Exception as e:
             raise Exception(f'Error connecting to server {server_port}: {e}')
 
@@ -81,6 +88,32 @@ class Recognizer:
 
     def stop_streaming(self):
         self.streaming = False
+
+    def reload_model(self,
+                     asr: bool = True,
+                     model: str = 'chinese',
+                     hotwords: str = None,
+                     context_score: int = 3,
+                     punctuation: bool = False,
+                     punc_model: str = 'pun_models'):
+        '''
+        重新加载模型。
+
+        参数:
+        asr (bool): 是否重新加载asr模型。
+        model (str): 所要加载的asr模型。
+        hotwords (str): asr模型所要加载的热词增强文件。
+        context_score (int): 热词增强中每个字的分数。
+        punctuation (bool): 是否重新加载标点符号预测模型。
+        punc_model (str): 所要加载的标点符号预测模型。
+
+        '''
+        self.stub.ReloadModel(wenet_asr_pb2.ReloadModelRequest(asr=asr,
+                                                               model=model,
+                                                               hotwords='None' if hotwords is None else hotwords,
+                                                               context_score=context_score,
+                                                               punctuation=punctuation,
+                                                               punctuation_model=punc_model))
 
     # Upload a new frame of data to server (and trigger recognition logic if streaming).
     def input(self, data: bytes) -> None:
@@ -98,17 +131,18 @@ class Recognizer:
         if self.streaming:
             self.new = self.recognize()
             # 实时添加标点
-            if self.punctuation:
-                self.puncted = self.punct(self.puncting + self.new)
-            if len(self.currentSession) / self.sampwidth / self.rate > self.update_duration:  # / self.channels
+            if self.punctuation and len(self.puncting + self.new):
+                self.puncted = self.punct(self.puncting + self.new)[:-1]
+            
+            if len(self.currentSession) / self.sampwidth / self.sample_rate > self.update_duration:  # / self.channels
                 self.fixed += self.new
+                self.puncting += self.new
                 
                 # 固定化标点
-                self.puncting += self.new
                 if self.punctuation:
                     # self.puncted = self.punct()
                     if len(self.puncting) > self.puncting_len:
-                        self.puncfixed += self.punct(self.puncting)
+                        self.puncfixed += self.punct(self.puncting)[:-1]
                         self.puncted = ''
                         self.puncting = ''
 
@@ -131,6 +165,8 @@ class Recognizer:
         '''
         if data is None:
             data = self.currentSession
+        if not len(data):
+            return ''
         text = self.stub.Recognize(wenet_asr_pb2.RecognizeRequest(config=self.config, data=data)).transcript
         if punctuation:
             return self.stub.Punct(wenet_asr_pb2.TextMessage(text=text)).text
@@ -149,6 +185,8 @@ class Recognizer:
         '''
         if text is None:
             text = self.puncting
+        if not len(text):
+            return ''
         return self.stub.Punct(wenet_asr_pb2.TextMessage(text=text)).text
         
 

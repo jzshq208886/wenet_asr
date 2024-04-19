@@ -14,7 +14,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fwenet_asr.proto\x12\x08wenetasr\"\x07\n\x05\x45mpty\"\x1b\n\x0bTextMessage\x12\x0c\n\x04text\x18\x01 \x01(\t\"/\n\x11RecognitionConfig\x12\x1a\n\x11sample_rate_hertz\x18\x80@ \x01(\x05\"M\n\x10RecognizeRequest\x12+\n\x06\x63onfig\x18\x01 \x01(\x0b\x32\x1b.wenetasr.RecognitionConfig\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\'\n\x11RecognizeResponse\x12\x12\n\ntranscript\x18\x01 \x01(\t\"@\n\x19StreamingRecognizeRequest\x12\x0e\n\x04\x64\x61ta\x18\x02 \x01(\x0cH\x00\x42\x13\n\x11streaming_request\"0\n\x1aStreamingRecognizeResponse\x12\x12\n\ntranscript\x18\x01 \x01(\t2\xa2\x02\n\x08WenetASR\x12\x34\n\x04Test\x12\x15.wenetasr.TextMessage\x1a\x15.wenetasr.TextMessage\x12\x44\n\tRecognize\x12\x1a.wenetasr.RecognizeRequest\x1a\x1b.wenetasr.RecognizeResponse\x12\x63\n\x12StreamingRecognize\x12#.wenetasr.StreamingRecognizeRequest\x1a$.wenetasr.StreamingRecognizeResponse(\x01\x30\x01\x12\x35\n\x05Punct\x12\x15.wenetasr.TextMessage\x1a\x15.wenetasr.TextMessageb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fwenet_asr.proto\x12\x08wenetasr\"\x07\n\x05\x45mpty\"\x1b\n\x0bTextMessage\x12\x0c\n\x04text\x18\x01 \x01(\t\"\x89\x01\n\x12ReloadModelRequest\x12\x0b\n\x03\x61sr\x18\x01 \x01(\x08\x12\r\n\x05model\x18\x02 \x01(\t\x12\x10\n\x08hotwords\x18\x03 \x01(\t\x12\x15\n\rcontext_score\x18\x04 \x01(\x05\x12\x13\n\x0bpunctuation\x18\x05 \x01(\x08\x12\x19\n\x11punctuation_model\x18\x06 \x01(\t\".\n\x11RecognitionConfig\x12\x19\n\x11sample_rate_hertz\x18\x01 \x01(\x05\"M\n\x10RecognizeRequest\x12+\n\x06\x63onfig\x18\x01 \x01(\x0b\x32\x1b.wenetasr.RecognitionConfig\x12\x0c\n\x04\x64\x61ta\x18\x02 \x01(\x0c\"\'\n\x11RecognizeResponse\x12\x12\n\ntranscript\x18\x01 \x01(\t\"@\n\x19StreamingRecognizeRequest\x12\x0e\n\x04\x64\x61ta\x18\x02 \x01(\x0cH\x00\x42\x13\n\x11streaming_request\"0\n\x1aStreamingRecognizeResponse\x12\x12\n\ntranscript\x18\x01 \x01(\t2\x97\x03\n\x08WenetASR\x12\x34\n\x04Test\x12\x15.wenetasr.TextMessage\x1a\x15.wenetasr.TextMessage\x12\x35\n\x0bGetServerID\x12\x0f.wenetasr.Empty\x1a\x15.wenetasr.TextMessage\x12<\n\x0bReloadModel\x12\x1c.wenetasr.ReloadModelRequest\x1a\x0f.wenetasr.Empty\x12\x44\n\tRecognize\x12\x1a.wenetasr.RecognizeRequest\x1a\x1b.wenetasr.RecognizeResponse\x12\x63\n\x12StreamingRecognize\x12#.wenetasr.StreamingRecognizeRequest\x1a$.wenetasr.StreamingRecognizeResponse(\x01\x30\x01\x12\x35\n\x05Punct\x12\x15.wenetasr.TextMessage\x1a\x15.wenetasr.TextMessageb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -25,16 +25,18 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _globals['_EMPTY']._serialized_end=36
   _globals['_TEXTMESSAGE']._serialized_start=38
   _globals['_TEXTMESSAGE']._serialized_end=65
-  _globals['_RECOGNITIONCONFIG']._serialized_start=67
-  _globals['_RECOGNITIONCONFIG']._serialized_end=114
-  _globals['_RECOGNIZEREQUEST']._serialized_start=116
-  _globals['_RECOGNIZEREQUEST']._serialized_end=193
-  _globals['_RECOGNIZERESPONSE']._serialized_start=195
-  _globals['_RECOGNIZERESPONSE']._serialized_end=234
-  _globals['_STREAMINGRECOGNIZEREQUEST']._serialized_start=236
-  _globals['_STREAMINGRECOGNIZEREQUEST']._serialized_end=300
-  _globals['_STREAMINGRECOGNIZERESPONSE']._serialized_start=302
-  _globals['_STREAMINGRECOGNIZERESPONSE']._serialized_end=350
-  _globals['_WENETASR']._serialized_start=353
-  _globals['_WENETASR']._serialized_end=643
+  _globals['_RELOADMODELREQUEST']._serialized_start=68
+  _globals['_RELOADMODELREQUEST']._serialized_end=205
+  _globals['_RECOGNITIONCONFIG']._serialized_start=207
+  _globals['_RECOGNITIONCONFIG']._serialized_end=253
+  _globals['_RECOGNIZEREQUEST']._serialized_start=255
+  _globals['_RECOGNIZEREQUEST']._serialized_end=332
+  _globals['_RECOGNIZERESPONSE']._serialized_start=334
+  _globals['_RECOGNIZERESPONSE']._serialized_end=373
+  _globals['_STREAMINGRECOGNIZEREQUEST']._serialized_start=375
+  _globals['_STREAMINGRECOGNIZEREQUEST']._serialized_end=439
+  _globals['_STREAMINGRECOGNIZERESPONSE']._serialized_start=441
+  _globals['_STREAMINGRECOGNIZERESPONSE']._serialized_end=489
+  _globals['_WENETASR']._serialized_start=492
+  _globals['_WENETASR']._serialized_end=899
 # @@protoc_insertion_point(module_scope)
