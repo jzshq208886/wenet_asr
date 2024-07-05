@@ -1,4 +1,10 @@
+import argparse
+
+parser = argparse.ArgumentParser("WeNet model remote calling service")
+parser.add_argument("--model", default="")
+
 import os
+import os.path as osp
 from concurrent import futures
 import time
 import random
@@ -13,6 +19,8 @@ from lib import wenet_asr_pb2_grpc
 
 from lib import audio_read as ar
 
+
+
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 class WenetASR(wenet_asr_pb2_grpc.WenetASRServicer):
@@ -21,7 +29,12 @@ class WenetASR(wenet_asr_pb2_grpc.WenetASRServicer):
 
         self.model = None
         self.pun_predictor = None
-        self.model_dir = os.path.join('models', 'asr', model)
+        if osp.exists(model):
+            self.model_dir = model
+        elif osp.exists(osp.join('model', 'asr', model)):
+            self.model_dir = osp.join('model', 'asr', model)
+        else:
+            raise FileNotFoundError(f"None of directory {model} or {osp.join('model', 'asr', model)} exists.")
         self.hotwords_dir = hotwords if hotwords is None else os.path.join('hotwords', hotwords)
         self.punc_model_dir = str(os.path.join('models', 'punc', punc_model))
 

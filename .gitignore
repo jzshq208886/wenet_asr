@@ -6,3 +6,4 @@ transcript*
 test*.py
 cer*.csv
 baidu_api
+user_dict.txt
