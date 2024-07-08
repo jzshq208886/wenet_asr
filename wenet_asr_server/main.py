@@ -1,7 +1,12 @@
 import argparse
 
 parser = argparse.ArgumentParser("WeNet model remote calling service")
-parser.add_argument("--model", default="")
+parser.add_argument("--model", default="model/asr/chinese", help="WeNet model path")
+parser.add_argument("--pun-model", default="model/pun/pun_models", help="punctuation model path")
+parser.add_argument("--hotwords", help="hotword file path")
+parser.add_argument("--context-score", type=float, default=3.0, help="additional score of each character in a hotword in beam-search")
+parser.add_argument("--port", type=int, default=50051, help="port of the service process")
+args = parser.parse_args()
 
 import os
 import os.path as osp
@@ -24,31 +29,59 @@ from lib import audio_read as ar
 _ONE_DAY_IN_SECONDS = 60 * 60 * 24
 
 class WenetASR(wenet_asr_pb2_grpc.WenetASRServicer):
-    def __init__(self, model, hotwords=None, punc_model='pun_models'):
+    def __init__(self, model, pun_model=None, hotwords=None):
         self.id = ''.join(random.choices(string.digits, k=16))
 
         self.model = None
         self.pun_predictor = None
+
         if osp.exists(model):
             self.model_dir = model
         elif osp.exists(osp.join('model', 'asr', model)):
             self.model_dir = osp.join('model', 'asr', model)
-        else:
-            raise FileNotFoundError(f"None of directory {model} or {osp.join('model', 'asr', model)} exists.")
-        self.hotwords_dir = hotwords if hotwords is None else os.path.join('hotwords', hotwords)
-        self.punc_model_dir = str(os.path.join('models', 'punc', punc_model))
+        # else:
+        #     raise FileNotFoundError(f"None of directory {model} or {osp.join('model', 'asr', model)} exists.")
+        
+        self.pun_model_dir = None
+        if pun_model:
+            if osp.exists(pun_model):
+                self.pun_model_dir = pun_model
+            elif osp.exists(osp.join('model', 'pun', pun_model)):
+                self.pun_model_dir = osp.join('model', 'pun', pun_model)
+            else:
+                raise FileNotFoundError(f"None of directory {pun_model} or {osp.join('model', 'pun', pun_model)} exists.")
+        
+        self.hotwords_dir = None
+        if hotwords:
+            if osp.exists(hotwords):
+                self.hotwords_dir = hotwords
+            elif osp.exists(osp.join('hotwords', hotwords)):
+                self.hotwords_dir = osp.join('hotwords', hotwords)
+            else:
+                raise FileNotFoundError(f"None of file {hotwords} or {osp.join('hotwords', hotwords)} exists.")
 
         print(f'server_id: {self.id}')
 
         print('loading ASR model...')
-        print(f'Using hotwords dict: {self.hotwords_dir}')
-        self.model = wenet.load_model(
-            model_dir=self.model_dir,
-            context_path=self.hotwords_dir,
-            context_score=3.0,
-        )
+        if self.hotwords_dir:
+            print(f'Using hotwords dict: {self.hotwords_dir}')
+        if self.model_dir:
+            self.model = wenet.load_model(
+                model_dir=self.model_dir,
+                context_path=self.hotwords_dir,
+                context_score=args.context_score,
+            )
+        else:
+            self.model = wenet.load_model(
+                language="chinese",
+                context_path=self.hotwords_dir,
+                context_score=args.context_score,
+            )
         print('loading punctuation model...')
-        self.pun_predictor = PunctuationPredictor(model_dir=self.punc_model_dir, use_gpu=False)
+        if self.pun_model_dir:
+            self.pun_predictor = PunctuationPredictor(model_dir=self.pun_model_dir, use_gpu=False)
+        else:
+            self.pun_predictor = PunctuationPredictor(use_gpu=False)
         print('done')
 
     def Test(self, request, context):
@@ -85,7 +118,7 @@ class WenetASR(wenet_asr_pb2_grpc.WenetASRServicer):
         if request.punctuation:
             print('reloading ASR model...')
             if request.punctuation_model == "default":
-                punc_model_dir = self.punc_model_dir
+                punc_model_dir = self.pun_model_dir
             else:
                 punc_model_dir = f'models/punc/{request.punctuation_model}'
                 if not os.path.exists(punc_model_dir):
@@ -109,19 +142,21 @@ class WenetASR(wenet_asr_pb2_grpc.WenetASRServicer):
             waveform = ar.bytes2tensor(request.data)
             result = self.model.transcribe((waveform, request.config['sample_rate_hertz']))['text']
             yield wenet_asr_pb2.StreamingRecognizeResponse(transcript=result['text'])
-    
+
     def Punct(self, request, context):
         print(f'\nRequest received: Punct: text={request.text}.')
+        if self.pun_predictor is None:
+            print('No punctuation model specified.')
+            return wenet_asr_pb2.TextMessage(text=request.text)
         response = wenet_asr_pb2.TextMessage(text=self.pun_predictor(request.text))
         print(f'Response: text="{response.text}"')
         return response
 
 
-
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    wenet_asr_pb2_grpc.add_WenetASRServicer_to_server(WenetASR('chinese', 'user_dict.txt'), server)
-    server.add_insecure_port('[::]:50051')
+    wenet_asr_pb2_grpc.add_WenetASRServicer_to_server(WenetASR(args.model, args.pun_model, args.hotwords), server)
+    server.add_insecure_port(f'[::]:{args.port}')
     server.start()
     try:
         while True:
