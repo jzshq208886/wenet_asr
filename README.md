@@ -14,4 +14,4 @@ The client project provides python API implemented by a python class. The API en
 
 ## GRPC Message Prototype
 
-The *protos* directory defines the gRPC messages for communications between server and client. The prototype file is already compiled and adjusted to fit into the project, so you don't need to do it again by yourself.
+The *protos* directory defines the gRPC services and messages using Protocol Buffers. The *.proto* file is already compiled to generate python code and the code is adjusted to fit into the project, so you don't need to do it again by yourself.
